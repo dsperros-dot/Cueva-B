@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cueva B - POS</title>
+    <style>
+        :root {
+            --bg: #121212;
+            --card: #1e1e1e;
+            --text: #ffffff;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        
+        h1 { font-size: 1.5rem; margin-bottom: 15px; }
+
+        /* Contenedor de botones responsivo */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
+            gap: 12px; 
+            max-width: 800px; 
+            margin: auto; 
+        }
+        
+        button { 
+            padding: 25px 10px; 
+            font-size: 16px; 
+            border: none; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            color: white;
+            transition: transform 0.1s, filter 0.2s;
+        }
+        button:active { transform: scale(0.95); }
+        button:hover { filter: brightness(1.1); }
+
+        /* Colores de productos */
+        .Cerveza { background: #ffcc00; color: #333; }
+        .Corona { background: #0088ff; }
+        .One { background: #ff00ff; }
+        .Agua { background: #f0f0f0; color: #333; }
+        .Shot { background: #ff4400; }
+        .Margarita { background: #00ff88; color: #333; }
+        .Botella { background: #9933ff; }
+
+        /* Panel de Control */
+        #admin { 
+            margin: 25px auto; 
+            background: var(--card); 
+            padding: 20px; 
+            border-radius: 20px; 
+            max-width: 500px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .total-box { color: #00ff88; font-size: 32px; font-weight: bold; margin: 10px 0; }
+        .historial-box { 
+            max-height: 250px; 
+            overflow-y: auto; 
+            background: #000; 
+            padding: 10px; 
+            border-radius: 10px; 
+            font-family: monospace;
+            text-align: left;
+            font-size: 14px;
+        }
+        .log { padding: 8px 0; border-bottom: 1px solid #222; color: #bbb; }
+        .log b { color: #fff; }
+    </style>
+</head>
+<body>
+
+    <h1>🍻 Cueva B - Ventas</h1>
+    
+    <div class="grid" id="contenedor-productos">
+        </div>
+
+    <div id="admin">
+        <h3 style="color: #888; margin: 0;">Total Acumulado</h3>
+        <div class="total-box">$<span id="total-caja">0</span></div>
+        <div class="historial-box" id="historial">Cargando...</div>
+        
+        <button style="background: #333; margin-top: 15px; width: 100%; padding: 15px;" onclick="realizarCorte()">
+            Limpiar Caja (Corte)
+        </button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <script>
+        // Tus productos: Puedes agregar más siguiendo este formato
+        const productos = [
+            { nombre: 'Cerveza', precio: 50, clase: 'Cerveza' },
+            { nombre: 'One', precio: 120, clase: 'One' },
+            { nombre: 'Corona', precio: 150, clase: 'Corona' },
+            { nombre: 'Agua', precio: 30, clase: 'Agua' },
+            { nombre: 'Shot', precio: 80, clase: 'Shot' },
+            { nombre: 'Margarita', precio: 130, clase: 'Margarita' },
+            { nombre: 'Botella', precio: 1200, clase: 'Botella' }
+        ];
+
+        // Cargar botones al inicio
+        const grid = document.getElementById('contenedor-productos');
+        productos.forEach(p => {
+            const btn = document.createElement('button');
+            btn.className = p.clase;
+            btn.innerText = `${p.nombre} ($${p.precio})`;
+            btn.onclick = () => enviarVenta(p.nombre, p.precio);
+            grid.appendChild(btn);
+        });
+
+        // Configuración Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCbkHawWcvju2U-ehpvHkToQV0--qh6Ip0",
+            authDomain: "mibarpos.firebaseapp.com",
+            databaseURL: "https://mibarpos-default-rtdb.firebaseio.com",
+            projectId: "mibarpos",
+            storageBucket: "mibarpos.firebasestorage.app",
+            messagingSenderId: "492727911130",
+            appId: "1:492727911130:web:58bea15998a09420a39be3"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function enviarVenta(producto, precio) {
+            db.ref('ventas').push({
+                producto: producto,
+                precio: precio,
+                fecha: new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+            });
+        }
+
+        function realizarCorte() {
+            if(confirm("¿Cerrar caja y borrar historial?")) db.ref('ventas').remove();
+        }
+
+        db.ref('ventas').on('value', (snapshot) => {
+            const datos = snapshot.val();
+            let total = 0, html = "";
+            if (datos) {
+                Object.values(datos).forEach(v => {
+                    total += v.precio;
+                    html = `<div class="log">${v.fecha} - <b>${v.producto}</b>: $${v.precio}</div>` + html;
+                });
+                document.getElementById('total-caja').innerText = total;
+                document.getElementById('historial').innerHTML = html;
+            } else {
+                document.getElementById('total-caja').innerText = "0";
+                document.getElementById('historial').innerHTML = "Sin ventas";
+            }
+        });
+    </script>
+</body>
+</html>
