@@ -3,40 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cueva B - Gestión Fácil</title>
+    <title>Cueva B - POS + Facturación</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
-        :root { --bg: #121212; --card: #1e1e1e; --text: #ffffff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; text-align: center; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; max-width: 800px; margin: auto; }
-        button { padding: 25px 10px; font-size: 16px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; color: white; transition: 0.1s; }
-        button:active { transform: scale(0.95); }
+        :root { --bg: #121212; --card: #1e1e1e; --text: #ffffff; --accent: #00ff88; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; text-align: center; }
+        
+        .main-layout { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; max-width: 1200px; margin: auto; }
+        
+        /* Sección de Botones */
+        .menu-section { flex: 1; min-width: 320px; max-width: 800px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+        .btn-prod { padding: 15px 5px; font-size: 14px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.1s; height: 70px; }
+        .btn-prod:active { transform: scale(0.95); }
 
-        /* Estilo general de los botones si no tienen color definido */
-        .btn-generico { background: #444; }
+        /* Sección de Ticket (Factura) */
+        .ticket-section { width: 300px; background: #fff; color: #000; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; box-shadow: 0 10px 25px rgba(0,0,0,0.5); height: fit-content; position: sticky; top: 10px; }
+        .ticket-header { border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
+        .ticket-line { display: flex; justify-content: space-between; font-size: 13px; margin: 4px 0; }
+        .total-ticket { border-top: 2px solid #000; margin-top: 10px; padding-top: 10px; font-weight: bold; font-size: 18px; text-align: right; }
+        
+        /* Botones de Cobro */
+        .btn-pay { background: var(--accent); color: #000; width: 100%; padding: 12px; font-size: 16px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-cancel { background: #ff4444; color: white; width: 100%; padding: 8px; font-size: 12px; border-radius: 8px; border: none; cursor: pointer; margin-top: 5px; }
 
-        #admin { margin: 25px auto; background: var(--card); padding: 20px; border-radius: 20px; max-width: 500px; border: 1px solid #333; }
-        .total-box { color: #00ff88; font-size: 32px; font-weight: bold; margin: 10px 0; }
-        .historial-box { max-height: 200px; overflow-y: auto; background: #000; padding: 10px; border-radius: 10px; text-align: left; font-size: 14px; }
-        .log { padding: 8px 0; border-bottom: 1px solid #222; color: #bbb; }
-        .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .btn-undo { background: #555; padding: 15px; grid-column: span 2; }
-        .btn-excel { background: #2e7d32; padding: 15px; }
-        .btn-corte { background: #b30000; padding: 15px; }
+        /* Admin Panel */
+        #admin { margin-top: 20px; background: var(--card); padding: 15px; border-radius: 15px; border: 1px solid #333; }
+        .total-box { color: var(--accent); font-size: 24px; font-weight: bold; }
+        .historial-box { max-height: 150px; overflow-y: auto; background: #000; padding: 10px; border-radius: 10px; text-align: left; font-size: 12px; margin: 10px 0; border: 1px solid #222; }
+        .log { padding: 4px 0; border-bottom: 1px solid #222; color: #aaa; }
+        
+        .actions-admin { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .btn-adm { background: #444; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 11px; }
+
+        @media print { 
+            body * { visibility: hidden; } 
+            .ticket-section, .ticket-section * { visibility: visible; } 
+            .ticket-section { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; }
+            .btn-pay, .btn-cancel { display: none; }
+        }
     </style>
 </head>
 <body>
 
-    <h1>🍻 Cueva B - Ventas</h1>
-    <div class="grid" id="contenedor-productos"></div>
+    <h2 style="margin: 10px 0;">🍺 Cueva B - Punto de Venta</h2>
 
-    <div id="admin">
-        <div class="total-box">$<span id="total-caja">0</span></div>
-        <div class="historial-box" id="historial">Cargando...</div>
-        <div class="actions">
-            <button class="btn-undo" onclick="deshacerVenta()">↩️ Deshacer Última</button>
-            <button class="btn-excel" onclick="descargarExcel()">📥 Bajar Excel</button>
-            <button class="btn-corte" onclick="realizarCorte()">📊 Corte (PIN)</button>
+    <div class="main-layout">
+        <div class="menu-section">
+            <div class="grid" id="contenedor-productos"></div>
+            
+            <div id="admin">
+                <div class="total-box">Caja: $<span id="total-caja">0</span></div>
+                <div class="historial-box" id="historial">Cargando...</div>
+                <div class="actions-admin">
+                    <button class="btn-adm" onclick="descargarExcel()">📥 Bajar Excel</button>
+                    <button class="btn-adm" style="background:#b30000" onclick="realizarCorte()">📊 Corte (PIN)</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="ticket-section" id="area-ticket">
+            <div class="ticket-header">
+                <h3 style="margin:0;">CUEVA B</h3>
+                <small id="fecha-ticket"></small>
+            </div>
+            <div id="items-ticket"><p style="color:#888; font-size: 12px;">Esperando pedido...</p></div>
+            <div class="total-ticket">TOTAL: $<span id="total-ticket-monto">0</span></div>
+            <button class="btn-pay" onclick="finalizarVenta()">✅ Cobrar e Imprimir</button>
+            <button class="btn-cancel" onclick="cancelarTicket()">❌ Cancelar</button>
         </div>
     </div>
 
@@ -44,10 +78,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <script>
-        // ==========================================
-        // 🛒 CATÁLOGO DE PRODUCTOS (Modifica aquí)
-        // = { nombre: 'NOMBRE', precio: PRECIO, color: 'COLOR' }
-        // ==========================================
+        // 🛒 CATALOGO DE PRODUCTOS (Mantenemos los tuyos)
         const productos = [
             { nombre: 'PresPeq',   precio: 140,  color: '#ffcc00' },
             { nombre: 'OnePeq',    precio: 120,  color: '#ff00ff' },
@@ -68,33 +99,41 @@
             { nombre: 'Agua',      precio: 15,   color: '#f0f0f0' },
             { nombre: 'Soda',      precio: 50,   color: '#ff4400' },
             { nombre: '7up',       precio: 30,   color: '#00ff88' },
-            { nombre: 'GatorPeq',  precio: 50,   color: '#9933ff' },
-            { nombre: 'Corona',    precio: 000,  color: '#0088ff' },
-            { nombre: 'Agua',      precio: 00,   color: '#f0f0f0' },
-            { nombre: 'Shot',      precio: 00,   color: '#ff4400' },
-            { nombre: 'Margarita', precio: 000,  color: '#00ff88' },
-            { nombre: 'Botella',   precio: 0000, color: '#9933ff' },
-            // Puedes agregar más abajo respetando las comas y llaves
+            { nombre: 'GatorPeq',  precio: 50,   color: '#9933ff' }
         ];
 
         const PIN_CORRECTO = "020322"; 
+        let ticketActual = [];
+        let ventasActuales = [];
 
-        // ==========================================
-        // NO TOCAR NADA DE AQUÍ ABAJO (Lógica)
-        // ==========================================
-        
+        // Generar Botones
         const grid = document.getElementById('contenedor-productos');
         productos.forEach(p => {
             const btn = document.createElement('button');
+            btn.className = 'btn-prod';
             btn.style.backgroundColor = p.color;
-            // Si el color es claro (como el agua), ponemos texto oscuro
-            if(p.color === '#f0f0f0' || p.color === '#ffcc00' || p.color === '#00ff88') btn.style.color = '#333';
-            
+            if(['#f0f0f0', '#ffcc00', '#00ff88'].includes(p.color)) btn.style.color = '#333';
             btn.innerText = `${p.nombre}\n$${p.precio}`;
-            btn.onclick = () => enviarVenta(p.nombre, p.precio);
+            btn.onclick = () => {
+                ticketActual.push(p);
+                renderizarTicket();
+            };
             grid.appendChild(btn);
         });
 
+        function renderizarTicket() {
+            const container = document.getElementById('items-ticket');
+            let html = ""; let total = 0;
+            ticketActual.forEach(item => {
+                total += item.precio;
+                html += `<div class="ticket-line"><span>${item.nombre}</span><span>$${item.precio}</span></div>`;
+            });
+            container.innerHTML = html || '<p style="color:#888; font-size: 12px;">Esperando pedido...</p>';
+            document.getElementById('total-ticket-monto').innerText = total;
+            document.getElementById('fecha-ticket').innerText = new Date().toLocaleString();
+        }
+
+        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyCbkHawWcvju2U-ehpvHkToQV0--qh6Ip0",
             authDomain: "mibarpos.firebaseapp.com",
@@ -104,37 +143,30 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let ventasActuales = [];
 
-        function enviarVenta(producto, precio) {
+        function finalizarVenta() {
+            if(ticketActual.length === 0) return;
+            const totalVenta = ticketActual.reduce((acc, p) => acc + p.precio, 0);
+            const detalle = ticketActual.map(p => p.nombre).join(", ");
+            
             db.ref('ventas').push({
-                producto: producto,
-                precio: precio,
+                producto: detalle, // Guardamos el combo vendido
+                precio: totalVenta,
                 hora: new Date().toLocaleTimeString('es-MX'),
                 fecha_completa: new Date().toLocaleDateString('es-MX')
+            }).then(() => {
+                window.print(); // Abre factura para imprimir/PDF
+                ticketActual = [];
+                renderizarTicket();
             });
         }
 
-        function descargarExcel() {
-            if (ventasActuales.length === 0) return alert("No hay ventas");
-            const ws = XLSX.utils.json_to_sheet(ventasActuales);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Ventas");
-            XLSX.writeFile(wb, `Ventas_CuevaB_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`);
+        function cancelarTicket() {
+            ticketActual = [];
+            renderizarTicket();
         }
 
-        function deshacerVenta() {
-            db.ref('ventas').limitToLast(1).once('value', (s) => {
-                s.forEach((c) => { if(confirm(`¿Borrar ${c.val().producto}?`)) c.ref.remove(); });
-            });
-        }
-
-        function realizarCorte() {
-            if (prompt("PIN:") === PIN_CORRECTO) {
-                if(confirm("¿Limpiar caja?")) db.ref('ventas').remove();
-            } else { alert("PIN Incorrecto"); }
-        }
-
+        // Cargar Historial y Caja
         db.ref('ventas').on('value', (snapshot) => {
             const datos = snapshot.val();
             let total = 0, html = "";
@@ -143,7 +175,7 @@
                 Object.values(datos).reverse().forEach(v => {
                     total += v.precio;
                     ventasActuales.push(v);
-                    html += `<div class="log">${v.hora} - <b>${v.producto}</b>: $${v.precio}</div>`;
+                    html += `<div class="log"><b>${v.hora}</b> - ${v.producto}: $${v.precio}</div>`;
                 });
                 document.getElementById('total-caja').innerText = total;
                 document.getElementById('historial').innerHTML = html;
@@ -152,6 +184,20 @@
                 document.getElementById('historial').innerHTML = "Sin ventas";
             }
         });
+
+        function descargarExcel() {
+            if (ventasActuales.length === 0) return alert("No hay datos");
+            const ws = XLSX.utils.json_to_sheet(ventasActuales);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Ventas");
+            XLSX.writeFile(wb, `CuevaB_${new Date().toLocaleDateString()}.xlsx`);
+        }
+
+        function realizarCorte() {
+            if (prompt("PIN:") === PIN_CORRECTO) {
+                if(confirm("¿Limpiar caja?")) db.ref('ventas').remove();
+            } else { alert("PIN Incorrecto"); }
+        }
     </script>
 </body>
 </html>
