@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cueva B - POS Pro</title>
+    <title>Cueva B - Punto de Venta</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
         :root { --bg: #121212; --card: #1e1e1e; --text: #ffffff; --accent: #00ff88; }
@@ -26,7 +26,7 @@
 </head>
 <body>
 
-    <h2 style="margin: 10px 0;">🍺 Cueva B - Punto de Venta</h2>
+    <h2 style="margin: 10px 0;">🍺 Cueva B - POS</h2>
 
     <div class="main-layout">
         <div class="menu-section">
@@ -62,8 +62,8 @@
             { nombre: 'PresPeq',   precio: 140,  color: '#ffcc00' },
             { nombre: 'OnePeq',    precio: 120,  color: '#ff00ff' },
             { nombre: 'Corona',    precio: 150,  color: '#0088ff' },
-            { nombre: 'Smirnoff',  precio: 200,  color: '#f0f0f0' },
-            { nombre: 'Modelo',    precio: 200,  color: '#ff4400' },
+            { nombre: 'smifnoff',  precio: 200,  color: '#f0f0f0' },
+            { nombre: 'modelo',    precio: 200,  color: '#ff4400' },
             { nombre: 'PresMed',   precio: 200,  color: '#00ff88' },
             { nombre: 'PresJum',   precio: 230,  color: '#9933ff' },
             { nombre: 'BruExtV1',  precio: 750,  color: '#ffcc00' },
@@ -85,6 +85,7 @@
         let ticketActual = [];
         let ventasActuales = [];
 
+        // Generar botones
         const grid = document.getElementById('contenedor-productos');
         productos.forEach(p => {
             const btn = document.createElement('button');
@@ -93,7 +94,7 @@
             if(['#f0f0f0', '#ffcc00', '#00ff88'].includes(p.color)) btn.style.color = '#333';
             btn.innerText = `${p.nombre}\n$${p.precio}`;
             btn.onclick = () => {
-                ticketActual.push({ ...p }); // Clonamos el objeto para asegurar el precio
+                ticketActual.push({ nombre: p.nombre, precio: Number(p.precio) });
                 renderizarTicket();
             };
             grid.appendChild(btn);
@@ -101,12 +102,19 @@
 
         function renderizarTicket() {
             const container = document.getElementById('items-ticket');
-            let html = ""; let total = 0;
-            ticketActual.forEach(item => {
-                total += Number(item.precio); // Forzamos que sea número
-                html += `<div class="ticket-line"><span>${item.nombre}</span><span>$${item.precio}</span></div>`;
-            });
-            container.innerHTML = html || '<p style="color:#888; font-size: 12px;">Esperando pedido...</p>';
+            let html = ""; 
+            let total = 0;
+            
+            if (ticketActual.length > 0) {
+                ticketActual.forEach(item => {
+                    total += item.precio;
+                    html += `<div class="ticket-line"><span>${item.nombre}</span><span>$${item.precio}</span></div>`;
+                });
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<p style="color:#888; font-size: 12px;">Esperando pedido...</p>';
+            }
+            
             document.getElementById('total-ticket-monto').innerText = total;
             document.getElementById('fecha-ticket').innerText = new Date().toLocaleString();
         }
@@ -148,16 +156,18 @@
 
         db.ref('ventas').on('value', (snapshot) => {
             const datos = snapshot.val();
-            let total = 0, html = "";
+            let totalGeneral = 0;
+            let htmlHistorial = "";
             ventasActuales = [];
+            
             if (datos) {
                 Object.values(datos).reverse().forEach(v => {
-                    total += Number(v.precio);
+                    totalGeneral += Number(v.precio);
                     ventasActuales.push(v);
-                    html += `<div class="log"><b>${v.hora}</b> - $${v.precio}: <small>${v.producto}</small></div>`;
+                    htmlHistorial += `<div class="log"><b>${v.hora}</b> - $${v.precio}: <small>${v.producto}</small></div>`;
                 });
-                document.getElementById('total-caja').innerText = total;
-                document.getElementById('historial').innerHTML = html;
+                document.getElementById('total-caja').innerText = totalGeneral;
+                document.getElementById('historial').innerHTML = htmlHistorial;
             } else {
                 document.getElementById('total-caja').innerText = "0";
                 document.getElementById('historial').innerHTML = "Sin ventas";
