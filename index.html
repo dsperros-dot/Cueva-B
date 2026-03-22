@@ -3,83 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cueva B - POS + Inventario</title>
+    <title>Cueva B - Reportes y Ganancias</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
-        :root { --bg: #121212; --card: #1e1e1e; --text: #ffffff; --accent: #00ff88; --warn: #ffcc00; --danger: #ff4444; }
+        :root { --bg: #0d0d0d; --card: #1a1a1a; --text: #e0e0e0; --accent: #00ff88; --gold: #ffcc00; --danger: #ff4444; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; text-align: center; }
         
-        /* Pantallas */
         #login-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; }
-        #main-app { display: none; padding-bottom: 50px; }
+        #main-app { display: none; }
         .main-layout { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; max-width: 1200px; margin: auto; }
         
         /* Botonera */
-        .menu-section { flex: 1; min-width: 320px; max-width: 800px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap: 10px; }
-        .btn-prod { padding: 10px 5px; font-size: 13px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; height: 85px; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 0.2s; position: relative; }
-        .stock-badge { background: rgba(0,0,0,0.6); color: white; padding: 2px 6px; border-radius: 5px; font-size: 10px; margin-top: 5px; }
-        .btn-prod:disabled { background-color: #444 !important; color: #888 !important; cursor: not-allowed; opacity: 0.6; }
-
-        /* Panel Admin e Inventario */
-        #admin-panel { display: none; margin-top: 20px; background: var(--card); padding: 15px; border-radius: 15px; border: 1px solid var(--accent); text-align: left; }
-        .inventario-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        .inventario-table th, .inventario-table td { border: 1px solid #333; padding: 8px; text-align: left; }
-        .input-stock { width: 50px; background: #000; color: var(--accent); border: 1px solid #555; padding: 5px; border-radius: 4px; }
-
-        /* Ticket */
-        .ticket-section { width: 280px; background: #fff; color: #000; padding: 20px; border-radius: 8px; font-family: 'Courier New', monospace; height: fit-content; position: sticky; top: 10px; }
-        .total-ticket { border-top: 2px solid #000; margin-top: 15px; padding-top: 10px; font-weight: bold; font-size: 20px; text-align: right; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; }
+        .btn-prod { padding: 10px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; height: 95px; transition: 0.2s; position: relative; }
+        .stock-badge { background: rgba(0,0,0,0.7); color: #fff; padding: 2px 5px; border-radius: 4px; font-size: 10px; margin-top: 5px; display: block; }
         
-        .btn-ui { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        /* Reportes */
+        #admin-panel { display: none; margin-top: 20px; background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid #333; text-align: left; }
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 15px; }
+        .stat-card { background: #000; padding: 15px; border-radius: 12px; border-top: 3px solid var(--accent); }
+        .stat-card h4 { margin: 0; font-size: 11px; color: #888; text-transform: uppercase; }
+        .stat-card p { margin: 5px 0 0; font-size: 18px; font-weight: bold; color: var(--accent); }
+
+        /* Filtro de Fechas */
+        .filter-box { background: #222; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #444; }
+        .input-date { background: #000; color: #fff; border: 1px solid #555; padding: 8px; border-radius: 6px; margin: 5px; }
+
+        /* Tablas */
+        .inv-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+        .inv-table th { text-align: left; color: var(--gold); padding: 8px; border-bottom: 1px solid #444; }
+        .inv-table td { padding: 8px; border-bottom: 1px solid #222; }
+        .input-inv { width: 40px; background: #000; color: #fff; border: 1px solid #444; padding: 4px; border-radius: 4px; }
+
+        .ticket-section { width: 280px; background: #fff; color: #000; padding: 20px; border-radius: 10px; font-family: 'Courier New', monospace; height: fit-content; }
+        .btn-ui { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <h1 style="letter-spacing: 3px;">CUEVA B</h1>
-        <div style="background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid #333;">
-            <button class="btn-ui" style="background: #444; color: white;" onclick="entrarComo('vendedor')">👤 Modo Vendedor</button>
-            <button class="btn-ui" style="background: var(--accent); color: #000;" onclick="entrarComo('dueno')">🔑 Modo Propietario</button>
+        <h1 style="letter-spacing: 5px; color: var(--accent);">CUEVA B</h1>
+        <div style="background: var(--card); padding: 30px; border-radius: 25px; border: 1px solid #333; width: 260px;">
+            <button class="btn-ui" style="background: #333; color: white;" onclick="entrarComo('vendedor')">👤 Vendedor</button>
+            <button class="btn-ui" style="background: var(--accent); color: #000;" onclick="entrarComo('dueno')">🔑 Propietario</button>
         </div>
     </div>
 
     <div id="main-app">
-        <header style="padding: 10px; display: flex; justify-content: space-between;">
-            <button onclick="cerrarSesion()" style="background:#333; color:white; border:none; padding:5px 15px; border-radius:5px; cursor:pointer;">⬅ Salir</button>
-            <span id="user-info" style="color: var(--accent); font-weight: bold;"></span>
+        <header style="padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <button onclick="cerrarSesion()" style="background: #444; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer;">Salir</button>
+            <span id="user-tag" style="font-weight: bold; color: var(--accent);"></span>
         </header>
 
         <div class="main-layout">
-            <div class="menu-section">
-                <div class="grid" id="contenedor-productos"></div>
+            <div class="menu-section" style="flex:1; min-width:320px;">
+                <div class="grid" id="grid-ventas"></div>
 
                 <div id="admin-panel">
-                    <h3>📊 Gestión de Negocio</h3>
-                    <p style="font-size: 24px; color: var(--accent); margin: 5px 0;">Caja: $<span id="total-caja">0</span></p>
+                    <h3>📊 Reporte de Ganancias</h3>
                     
-                    <details>
-                        <summary style="cursor:pointer; color: var(--warn);">📦 Configurar Inventario (Stock)</summary>
-                        <table class="inventario-table">
-                            <thead><tr><th>Producto</th><th>Stock Actual</th><th>Nuevo</th></tr></thead>
-                            <tbody id="tabla-stock-body"></tbody>
+                    <div class="filter-box">
+                        <small>Filtrar por rango de fechas:</small><br>
+                        <input type="date" id="fecha-inicio" class="input-date"> 
+                        <input type="date" id="fecha-fin" class="input-date">
+                        <button onclick="filtrarReporte()" style="background: var(--gold); border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-weight:bold;">Filtrar</button>
+                    </div>
+
+                    <div class="stats-row">
+                        <div class="stat-card"><h4>Ingreso Bruto</h4><p id="rep-ingreso">$0</p></div>
+                        <div class="stat-card" style="border-top-color: var(--gold);"><h4>Ganancia Neta</h4><p id="rep-ganancia">$0</p></div>
+                        <div class="stat-card" style="border-top-color: #00ccff;"><h4>Ventas</h4><p id="rep-cantidad">0</p></div>
+                    </div>
+
+                    <details style="background: #111; padding: 10px; border-radius: 10px;">
+                        <summary style="cursor: pointer; font-weight: bold; color: var(--gold);">📦 Inventario y Costos</summary>
+                        <table class="inv-table">
+                            <thead><tr><th>Prod.</th><th>Costo</th><th>Venta</th><th>Stock</th></tr></thead>
+                            <tbody id="lista-inventario"></tbody>
                         </table>
-                        <button class="btn-ui" style="background: var(--accent); color: #000; margin-top:10px;" onclick="guardarTodoElStock()">💾 Guardar Inventario</button>
+                        <button class="btn-ui" style="background: var(--accent); margin-top: 15px;" onclick="actualizarInventario()">Guardar Inventario</button>
                     </details>
 
-                    <div style="margin-top:20px;">
-                        <button class="btn-ui" style="background: #2e7d32; color:white;" onclick="descargarExcel()">📥 Bajar Reporte Excel</button>
-                        <button class="btn-ui" style="background: var(--danger); color:white;" onclick="realizarCorte()">📊 Hacer Corte de Caja</button>
+                    <div style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button class="btn-ui" style="background: #2e7d32; color: white;" onclick="descargarExcel()">📥 Excel</button>
+                        <button class="btn-ui" style="background: var(--danger); color: white;" onclick="realizarCorte()">📊 Reset Caja</button>
                     </div>
                 </div>
             </div>
 
-            <div class="ticket-section" id="area-ticket">
-                <h2 style="margin:0; text-align:center;">CUEVA B</h2>
-                <div id="items-ticket" style="min-height: 80px; margin-top:15px;"></div>
-                <div class="total-ticket">TOTAL: $<span id="total-ticket-monto">0</span></div>
-                <button class="btn-ui" style="background: var(--accent); color: #000; margin-top:15px;" onclick="finalizarVenta()">✅ Cobrar</button>
-                <button onclick="cancelarTicket()" style="background:none; border:none; color:red; cursor:pointer; width:100%; margin-top:10px; font-size:11px;">❌ Cancelar</button>
+            <div class="ticket-section">
+                <h3 style="margin: 0; text-align: center;">TICKET</h3>
+                <hr>
+                <div id="ticket-items" style="min-height: 100px;"></div>
+                <div style="font-size: 20px; font-weight: bold; text-align: right; margin-top: 10px;">TOTAL: $<span id="ticket-total">0</span></div>
+                <button class="btn-ui" style="background: var(--accent); margin-top: 15px;" onclick="procesarVenta()">✅ FINALIZAR</button>
             </div>
         </div>
     </div>
@@ -88,25 +105,23 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <script>
-        const productosBase = [
-            { id: 'p1', nombre: 'PresPeq',   precio: 140,  color: '#ffcc00' },
-            { id: 'p2', nombre: 'OnePeq',    precio: 120,  color: '#ff00ff' },
-            { id: 'p3', nombre: 'Corona',    precio: 150,  color: '#0088ff' },
-            { id: 'p4', nombre: 'Smifnoff',  precio: 200,  color: '#f0f0f0' },
-            { id: 'p5', nombre: 'Modelo',    precio: 200,  color: '#ff4400' },
-            { id: 'p6', nombre: 'PresMed',   precio: 200,  color: '#00ff88' },
-            { id: 'p7', nombre: 'PresJum',   precio: 230,  color: '#9933ff' },
-            { id: 'p8', nombre: 'Agua',      precio: 15,   color: '#f0f0f0' },
-            { id: 'p9', nombre: 'Soda',      precio: 50,   color: '#ff4400' },
-            { id: 'p10', nombre: '7up',      precio: 30,   color: '#00ff88' }
+        const CATALOGO = [
+            { id: 'p1', nombre: 'PresPeq', color: '#ffcc00' }, { id: 'p2', nombre: 'OnePeq', color: '#ff00ff' },
+            { id: 'p3', nombre: 'Corona', color: '#0088ff' }, { id: 'p4', nombre: 'Smifnoff', color: '#f0f0f0' },
+            { id: 'p5', nombre: 'Modelo', color: '#ff4400' }, { id: 'p6', nombre: 'PresMed', color: '#00ff88' },
+            { id: 'p7', nombre: 'PresJum', color: '#9933ff' }, { id: 'p8', nombre: 'BruExtV1', color: '#ffcc00' },
+            { id: 'p9', nombre: 'BruXV1Lt', color: '#ff00ff' }, { id: 'p10', nombre: 'BruDRes1', color: '#0088ff' },
+            { id: 'p11', nombre: 'KPridPeq', color: '#f0f0f0' }, { id: 'p12', nombre: 'KPridMed', color: '#ff4400' },
+            { id: 'p13', nombre: 'KPridGde', color: '#00ff88' }, { id: 'p14', nombre: 'VinoF1Lt', color: '#9933ff' },
+            { id: 'p15', nombre: 'JugMotts', color: '#ff00ff' }, { id: 'p16', nombre: '911', color: '#0088ff' },
+            { id: 'p17', nombre: 'Agua', color: '#f0f0f0' }, { id: 'p18', nombre: 'Soda', color: '#ff4400' },
+            { id: 'p19', nombre: '7up', color: '#00ff88' }, { id: 'p20', nombre: 'GatorPeq', color: '#9933ff' }
         ];
 
-        const PIN_DUENO = "020322";
-        let ticketActual = [];
-        let stockLocal = {};
-        let rolActual = "";
+        const PIN_SEC = "020322";
+        let userRole = ""; let currentTicket = [];
+        let dbData = { stock: {}, costos: {}, precios: {}, ventas: {} };
 
-        // Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCbkHawWcvju2U-ehpvHkToQV0--qh6Ip0",
             authDomain: "mibarpos.firebaseapp.com",
@@ -117,109 +132,130 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function entrarComo(rol) {
-            if(rol === 'dueno' && prompt("PIN Propietario:") !== PIN_DUENO) return alert("Error");
-            rolActual = rol;
+        function entrarComo(role) {
+            if(role === 'dueno' && prompt("PIN:") !== PIN_SEC) return;
+            userRole = role;
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
-            document.getElementById('admin-panel').style.display = rol === 'dueno' ? 'block' : 'none';
-            document.getElementById('user-info').innerText = rol === 'dueno' ? "PROPIETARIO" : "VENDEDOR";
-            renderizarTodo();
+            document.getElementById('admin-panel').style.display = role === 'dueno' ? 'block' : 'none';
+            document.getElementById('user-tag').innerText = role === 'dueno' ? "PROPIETARIO" : "VENDEDOR";
+            syncDB();
+        }
+
+        function syncDB() {
+            db.ref('negocio').on('value', (snap) => {
+                dbData = snap.val() || { stock: {}, costos: {}, precios: {}, ventas: {} };
+                renderEverything();
+                filtrarReporte(); // Actualiza el reporte al recibir datos
+            });
+        }
+
+        function renderEverything() {
+            const grid = document.getElementById('grid-ventas');
+            const invTable = document.getElementById('lista-inventario');
+            grid.innerHTML = ""; invTable.innerHTML = "";
+
+            CATALOGO.forEach(p => {
+                const stock = dbData.stock?.[p.id] || 0;
+                const precio = dbData.precios?.[p.id] || 0;
+                const costo = dbData.costos?.[p.id] || 0;
+
+                const btn = document.createElement('button');
+                btn.className = 'btn-prod'; btn.style.background = p.color;
+                if(['#f0f0f0', '#ffcc00', '#00ff88'].includes(p.color)) btn.style.color = '#333';
+                btn.disabled = stock <= 0;
+                btn.innerHTML = `<b>${p.nombre}</b><br>$${precio}<span class="stock-badge">Stock: ${stock}</span>`;
+                btn.onclick = () => { currentTicket.push(p); renderTicket(); };
+                grid.appendChild(btn);
+
+                if(userRole === 'dueno') {
+                    invTable.innerHTML += `<tr><td>${p.nombre}</td>
+                        <td><input class="input-inv" id="costo-${p.id}" value="${costo}"></td>
+                        <td><input class="input-inv" id="venta-${p.id}" value="${precio}"></td>
+                        <td><input class="input-inv" id="stock-${p.id}" placeholder="+"> <small>(${stock})</small></td></tr>`;
+                }
+            });
+        }
+
+        function filtrarReporte() {
+            if(userRole !== 'dueno') return;
+            const inicio = document.getElementById('fecha-inicio').value;
+            const fin = document.getElementById('fecha-fin').value;
+            
+            let ingreso = 0; let ganancia = 0; let cant = 0;
+            
+            if(dbData.ventas) {
+                Object.values(dbData.ventas).forEach(v => {
+                    // Si no hay filtro, mostrar todo hoy. Si hay filtro, comparar fechas.
+                    const fechaVenta = v.fecha_ISO; // Formato YYYY-MM-DD
+                    if((!inicio || fechaVenta >= inicio) && (!fin || fechaVenta <= fin)) {
+                        ingreso += v.totalVenta;
+                        ganancia += v.gananciaVenta;
+                        cant++;
+                    }
+                });
+            }
+            document.getElementById('rep-ingreso').innerText = `$${ingreso}`;
+            document.getElementById('rep-ganancia').innerText = `$${ganancia}`;
+            document.getElementById('rep-cantidad').innerText = cant;
+        }
+
+        function actualizarInventario() {
+            CATALOGO.forEach(p => {
+                const c = Number(document.getElementById(`costo-${p.id}`).value);
+                const v = Number(document.getElementById(`venta-${p.id}`).value);
+                const sAdd = Number(document.getElementById(`stock-${p.id}`).value);
+                if(c) db.ref(`negocio/costos/${p.id}`).set(c);
+                if(v) db.ref(`negocio/precios/${p.id}`).set(v);
+                if(sAdd) db.ref(`negocio/stock/${p.id}`).set((dbData.stock?.[p.id] || 0) + sAdd);
+            });
+            alert("Inventario guardado");
+        }
+
+        function renderTicket() {
+            const container = document.getElementById('ticket-items');
+            let total = 0; let html = "";
+            currentTicket.forEach(p => {
+                const pr = dbData.precios?.[p.id] || 0;
+                total += pr;
+                html += `<div style="display:flex; justify-content:space-between; font-size:12px;"><span>${p.nombre}</span><span>$${pr}</span></div>`;
+            });
+            container.innerHTML = html;
+            document.getElementById('ticket-total').innerText = total;
+        }
+
+        function procesarVenta() {
+            if(currentTicket.length === 0) return;
+            let tV = 0; let tC = 0;
+            const hoy = new Date();
+            const fechaISO = hoy.toISOString().split('T')[0];
+
+            currentTicket.forEach(p => {
+                tV += (dbData.precios?.[p.id] || 0);
+                tC += (dbData.costos?.[p.id] || 0);
+                db.ref(`negocio/stock/${p.id}`).set((dbData.stock?.[p.id] || 0) - 1);
+            });
+
+            db.ref('negocio/ventas').push({
+                items: currentTicket.map(p => p.nombre).join(", "),
+                totalVenta: tV,
+                gananciaVenta: (tV - tC),
+                fecha_ISO: fechaISO,
+                hora: hoy.toLocaleTimeString()
+            }).then(() => {
+                window.print();
+                currentTicket = []; renderTicket();
+            });
         }
 
         function cerrarSesion() { location.reload(); }
-
-        // SINCRONIZACIÓN DE STOCK Y VENTAS
-        db.ref('inventario').on('value', (snap) => {
-            stockLocal = snap.val() || {};
-            renderizarTodo();
-        });
-
-        db.ref('ventas').on('value', (snap) => {
-            let total = 0;
-            if(snap.val()) Object.values(snap.val()).forEach(v => total += v.precio);
-            document.getElementById('total-caja').innerText = total;
-        });
-
-        function renderizarTodo() {
-            const grid = document.getElementById('contenedor-productos');
-            const tabla = document.getElementById('tabla-stock-body');
-            grid.innerHTML = ""; tabla.innerHTML = "";
-
-            productosBase.forEach(p => {
-                const stock = stockLocal[p.id] || 0;
-                
-                // Botón de Venta
-                const btn = document.createElement('button');
-                btn.className = 'btn-prod';
-                btn.style.backgroundColor = p.color;
-                if(['#f0f0f0', '#ffcc00', '#00ff88'].includes(p.color)) btn.style.color = '#333';
-                if(stock <= 0) btn.disabled = true;
-                if(stock > 0 && stock <= 5) btn.style.boxShadow = "0 0 10px #ffcc00";
-
-                btn.innerHTML = `<b>${p.nombre}</b>$${p.precio}<span class="stock-badge">Stock: ${stock}</span>`;
-                btn.onclick = () => {
-                    if(stock > 0) {
-                        ticketActual.push(p);
-                        renderizarTicket();
-                    }
-                };
-                grid.appendChild(btn);
-
-                // Fila de Inventario (Solo Dueño)
-                if(rolActual === 'dueno') {
-                    tabla.innerHTML += `<tr><td>${p.nombre}</td><td>${stock}</td>
-                        <td><input type="number" class="input-stock" id="in-${p.id}" placeholder="+/-"></td></tr>`;
-                }
-            });
+        function realizarCorte() { if(confirm("¿Resetear?")) db.ref('negocio/ventas').remove(); }
+        function descargarExcel() {
+            const ws = XLSX.utils.json_to_sheet(Object.values(dbData.ventas || {}));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Ventas");
+            XLSX.writeFile(wb, "CuevaB_Reporte.xlsx");
         }
-
-        function guardarTodoElStock() {
-            productosBase.forEach(p => {
-                const input = document.getElementById(`in-${p.id}`);
-                if(input.value) {
-                    const nuevoValor = (stockLocal[p.id] || 0) + parseInt(input.value);
-                    db.ref(`inventario/${p.id}`).set(nuevoValor);
-                }
-            });
-            alert("Inventario Actualizado");
-        }
-
-        function renderizarTicket() {
-            const container = document.getElementById('items-ticket');
-            let html = ""; let total = 0;
-            ticketActual.forEach(item => {
-                total += item.precio;
-                html += `<div style="display:flex; justify-content:space-between; font-size:14px; margin-bottom:5px;"><span>${item.nombre}</span><span>$${item.precio}</span></div>`;
-            });
-            container.innerHTML = html || '<p style="color:#888; font-size: 12px; text-align:center;">Esperando pedido...</p>';
-            document.getElementById('total-ticket-monto').innerText = total;
-        }
-
-        function finalizarVenta() {
-            if(ticketActual.length === 0) return;
-            const total = Number(document.getElementById('total-ticket-monto').innerText);
-            
-            // 1. Restar del Stock
-            ticketActual.forEach(p => {
-                const stockActual = stockLocal[p.id] || 0;
-                db.ref(`inventario/${p.id}`).set(stockActual - 1);
-            });
-
-            // 2. Guardar Venta
-            db.ref('ventas').push({
-                productos: ticketActual.map(p => p.nombre).join(", "),
-                precio: total,
-                fecha: new Date().toLocaleString()
-            });
-
-            window.print();
-            ticketActual = [];
-            renderizarTicket();
-        }
-
-        function cancelarTicket() { ticketActual = []; renderizarTicket(); }
-        function realizarCorte() { if(confirm("¿Limpiar caja?")) db.ref('ventas').remove(); }
     </script>
 </body>
 </html>
