@@ -8,39 +8,23 @@
     <style>
         :root { --bg: #0d0d0d; --card: #1a1a1a; --text: #e0e0e0; --accent: #00ff88; --gold: #ffcc00; --danger: #ff4444; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
-        
-        /* Cabecera */
         .app-header { background: #000; padding: 15px; border-bottom: 2px solid var(--accent); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-        
-        /* Pantallas */
         #login-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 90vh; }
         #main-app { display: none; padding: 20px; }
-        
-        /* Layout */
         .main-layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; max-width: 1600px; margin: auto; }
-        
-        /* Grid de Productos */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
         .btn-prod { padding: 12px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; height: 115px; transition: 0.1s; color: #fff; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .btn-prod:active { transform: scale(0.95); }
         .stock-badge { background: rgba(0,0,0,0.8); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-top: 8px; display: block; }
-
-        /* Reportes y Paneles */
         .panel { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #333; margin-top: 20px; }
         .stats-row { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
         .stat-card { background: #000; padding: 15px; border-radius: 10px; border-left: 4px solid var(--accent); flex: 1; min-width: 150px; }
         .stat-card h4 { margin: 0; font-size: 11px; color: #888; text-transform: uppercase; }
-        .stat-card p { margin: 5px 0 0; font-size: 20px; font-weight: bold; color: var(--accent); }
-
-        /* Filtros */
+        .stat-card p { margin: 5px 0 0; font-size: 24px; font-weight: bold; color: var(--accent); }
         .filter-box { background: #222; padding: 12px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .input-date { background: #000; color: #fff; border: 1px solid #444; padding: 6px; border-radius: 5px; }
-
-        /* Ticket */
         .ticket-section { background: #fff; color: #000; padding: 20px; border-radius: 10px; font-family: 'Courier New', monospace; height: fit-content; position: sticky; top: 80px; }
         .btn-ui { width: 100%; padding: 14px; margin: 6px 0; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-        
-        /* Switch */
         .switch-container { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; background: #eee; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: bold; }
         .switch { position: relative; width: 34px; height: 18px; }
         .switch input { opacity: 0; width: 0; height: 0; }
@@ -48,10 +32,8 @@
         .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: #2196F3; }
         input:checked + .slider:before { transform: translateX(16px); }
-
         .inv-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
         .inv-table input { background: #000; color: #fff; border: 1px solid #444; padding: 4px; border-radius: 3px; width: 60px; }
-
         @media print {
             body * { visibility: hidden; }
             #area-impresion, #area-impresion * { visibility: visible; }
@@ -70,7 +52,6 @@
 
     <div id="login-screen">
         <div style="background: var(--card); padding: 40px; border-radius: 30px; border: 1px solid #333; width: 280px; text-align: center;">
-            <h2 style="margin-top:0;">Acceso</h2>
             <button class="btn-ui" style="background: #444; color: white;" onclick="entrarComo('vendedor')">👤 VENDEDOR</button>
             <button class="btn-ui" style="background: var(--accent); color: #000;" onclick="entrarComo('dueno')">🔑 PROPIETARIO</button>
         </div>
@@ -78,64 +59,50 @@
 
     <div id="main-app">
         <div class="main-layout">
-            
             <div class="menu-section">
                 <div class="grid" id="grid-ventas"></div>
-
                 <div class="panel">
-                    <h3 style="margin-top:0; color: var(--gold);">📈 Historial de Ventas</h3>
-                    
+                    <h3 style="margin-top:0; color: var(--gold);">📈 Reporte de Ventas</h3>
                     <div class="filter-box">
                         <span>Desde:</span> <input type="date" id="f-inicio" class="input-date">
                         <span>Hasta:</span> <input type="date" id="f-fin" class="input-date">
-                        <button onclick="filtrarVentas()" style="background: var(--accent); border:none; padding:7px 15px; border-radius:5px; font-weight:bold; cursor:pointer;">Ver Reporte</button>
+                        <button onclick="filtrarVentas()" style="background: var(--accent); border:none; padding:7px 15px; border-radius:5px; font-weight:bold; cursor:pointer; color:#000;">Filtrar</button>
                     </div>
-
                     <div class="stats-row">
-                        <div class="stat-card"><h4>Venta Total</h4><p id="stat-ingreso">$0</p></div>
-                        <div class="stat-card" id="card-utilidad" style="display:none; border-left-color: var(--gold);"><h4>Utilidad Neta</h4><p id="stat-utilidad">$0</p></div>
-                        <div class="stat-card" style="border-left-color: #00ccff;"><h4>Cant. Ventas</h4><p id="stat-cantidad">0</p></div>
+                        <div class="stat-card"><h4>VENTA TOTAL</h4><p id="stat-ingreso">$0</p></div>
+                        <div class="stat-card" id="card-utilidad" style="display:none; border-left-color: var(--gold);"><h4>UTILIDAD NETA</h4><p id="stat-utilidad">$0</p></div>
                     </div>
                 </div>
-
                 <div id="admin-panel" class="panel" style="display:none;">
-                    <h3 style="color: var(--accent);">📦 Gestión de Inventario</h3>
+                    <h3 style="color: var(--accent);">📦 Inventario</h3>
                     <div style="overflow-x:auto;">
-                        <table class="inv-table">
-                            <thead><tr><th>Producto</th><th>Costo</th><th>Venta</th><th>+Stock</th><th>Barcode</th></tr></thead>
-                            <tbody id="lista-inv"></tbody>
-                        </table>
+                        <table class="inv-table"><thead id="head-inv"></thead><tbody id="lista-inv"></tbody></table>
                     </div>
-                    <button class="btn-ui" style="background: var(--accent); color: #000; margin-top: 15px;" onclick="actualizarInv()">💾 GUARDAR CAMBIOS MASIVOS</button>
-                    <button class="btn-ui" style="background: var(--danger); color: white; margin-top: 10px;" onclick="borrarVentas()">⚠️ RESETEAR TODO EL HISTORIAL</button>
+                    <button class="btn-ui" style="background: var(--accent); color: #000; margin-top: 15px;" onclick="actualizarInv()">💾 GUARDAR CAMBIOS</button>
                 </div>
             </div>
 
             <div class="ticket-section" id="area-impresion">
                 <h3 style="text-align:center; margin:0;">CUEVA B</h3>
-                <p id="ticket-fecha" style="text-align:center; font-size:10px; margin:5px 0;"></p>
                 <hr style="border: 1px dashed #000;">
                 <div id="ticket-items" style="min-height: 120px; font-size: 13px;"></div>
                 <div style="border-top: 2px solid #000; padding-top:10px; text-align:right; font-weight:bold; font-size:1.4rem;">
                     TOTAL: $<span id="ticket-total">0</span>
                 </div>
-                
                 <div class="no-print">
                     <button class="btn-ui" style="background: var(--accent); color: #000; margin-top: 20px;" onclick="procesarCobro()">✅ COBRAR</button>
                     <div class="switch-container">
-                        <span>IMPRIMIR RECIBO?</span>
+                        <span>IMPRIMIR TICKET?</span>
                         <label class="switch"><input type="checkbox" id="check-print" checked><span class="slider"></span></label>
                     </div>
                     <button onclick="limpiar()" style="background:none; border:none; color:red; cursor:pointer; width:100%; margin-top:15px; font-size:11px;">CANCELAR</button>
                 </div>
             </div>
-
         </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
     <script>
         const CATALOGO = [
             { id: 'p1', nombre: 'PresPeq', color: '#ffcc00' }, { id: 'p2', nombre: 'OnePeq', color: '#ff00ff' },
@@ -159,7 +126,6 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
         let dbData = {}; let carrito = []; let user = "";
 
         function entrarComo(role) {
@@ -172,11 +138,10 @@
                 document.getElementById('admin-panel').style.display = 'block';
                 document.getElementById('card-utilidad').style.display = 'block';
             }
-            
             db.ref('negocio').on('value', snap => {
                 dbData = snap.val() || { stock: {}, costos: {}, precios: {}, barcodes: {}, ventas: {} };
                 renderApp();
-                filtrarVentas(); // Carga hoy por defecto
+                filtrarVentas(); 
             });
         }
 
@@ -184,12 +149,10 @@
             const grid = document.getElementById('grid-ventas');
             const inv = document.getElementById('lista-inv');
             grid.innerHTML = ""; inv.innerHTML = "";
-
+            document.getElementById('head-inv').innerHTML = `<tr><th>Producto</th><th>Costo</th><th>Venta</th><th>+Stock</th><th>Barcode</th></tr>`;
             CATALOGO.forEach(p => {
                 const st = dbData.stock?.[p.id] || 0;
                 const pr = dbData.precios?.[p.id] || 0;
-                
-                // Botones Grid
                 const b = document.createElement('button');
                 b.className = 'btn-prod'; b.style.background = p.color;
                 if(['#f0f0f0', '#ffcc00', '#00ff88'].includes(p.color)) b.style.color = '#333';
@@ -197,8 +160,6 @@
                 b.innerHTML = `${p.nombre}<br>$${pr}<span class="stock-badge">Stock: ${st}</span>`;
                 b.onclick = () => sumarAlTicket(p);
                 grid.appendChild(b);
-
-                // Tabla Admin
                 if(user === 'dueno') {
                     inv.innerHTML += `<tr><td>${p.nombre}</td>
                         <td><input type="number" id="c-${p.id}" value="${dbData.costos?.[p.id] || 0}"></td>
@@ -219,26 +180,21 @@
             });
             document.getElementById('ticket-items').innerHTML = h;
             document.getElementById('ticket-total').innerText = t;
-            document.getElementById('ticket-fecha').innerText = new Date().toLocaleString();
         }
 
         function procesarCobro() {
             if(carrito.length === 0) return;
             const hoy = new Date();
             let totV = 0; let totC = 0;
-            
             carrito.forEach(p => {
                 totV += (dbData.precios?.[p.id] || 0);
                 totC += (dbData.costos?.[p.id] || 0);
                 db.ref(`negocio/stock/${p.id}`).set((dbData.stock?.[p.id] || 0) - 1);
             });
-
             db.ref('negocio/ventas').push({
-                items: carrito.map(p => p.nombre).join(", "),
                 total: totV,
                 ganancia: (totV - totC),
-                fecha_ISO: hoy.toISOString().split('T')[0],
-                timestamp: hoy.getTime()
+                fecha_ISO: hoy.toISOString().split('T')[0]
             }).then(() => {
                 if(document.getElementById('check-print').checked) window.print();
                 limpiar();
@@ -246,19 +202,18 @@
         }
 
         function filtrarVentas() {
-            const ini = document.getElementById('f-inicio').value || new Date().toISOString().split('T')[0];
-            const fin = document.getElementById('f-fin').value || new Date().toISOString().split('T')[0];
-            
-            let ing = 0; let uti = 0; let cant = 0;
+            const hoyStr = new Date().toISOString().split('T')[0];
+            const ini = document.getElementById('f-inicio').value || hoyStr;
+            const fin = document.getElementById('f-fin').value || hoyStr;
+            let ing = 0; let uti = 0;
             if(dbData.ventas) {
                 Object.values(dbData.ventas).forEach(v => {
                     if(v.fecha_ISO >= ini && v.fecha_ISO <= fin) {
-                        ing += v.total; uti += v.ganancia; cant++;
+                        ing += v.total; uti += v.ganancia;
                     }
                 });
             }
             document.getElementById('stat-ingreso').innerText = `$${ing}`;
-            document.getElementById('stat-cantidad').innerText = cant;
             if(user === 'dueno') document.getElementById('stat-utilidad').innerText = `$${uti}`;
         }
 
@@ -274,7 +229,6 @@
             db.ref('negocio').update(u).then(() => alert("Inventario guardado"));
         }
 
-        // BARCODE SCANNER
         let buffer = "";
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
@@ -293,8 +247,6 @@
             document.getElementById('ticket-items').innerHTML = "";
             document.getElementById('ticket-total').innerText = "0";
         }
-        
-        function borrarVentas() { if(confirm("¿Borrar todo el historial de ventas?")) db.ref('negocio/ventas').remove(); }
     </script>
 </body>
 </html>
