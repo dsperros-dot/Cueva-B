@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cueva B - POS + Scanner</title>
+    <title>Cueva B - POS v2.1</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
         :root { --bg: #0d0d0d; --card: #1a1a1a; --text: #e0e0e0; --accent: #00ff88; --gold: #ffcc00; --danger: #ff4444; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
         
         .app-header { background: #000; padding: 15px; border-bottom: 2px solid var(--accent); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .app-title { margin: 0; font-size: 1.2rem; letter-spacing: 2px; color: var(--accent); font-weight: bold; }
@@ -22,24 +22,36 @@
         .btn-prod { padding: 10px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; height: 110px; transition: 0.1s; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.3); color: #fff; }
         .btn-prod:active { transform: scale(0.95); }
         .stock-badge { background: rgba(0,0,0,0.8); color: #fff; padding: 2px 5px; border-radius: 4px; font-size: 10px; margin-top: 5px; display: block; }
-        .barcode-label { font-size: 9px; opacity: 0.7; display: block; margin-top: 2px; }
 
         #admin-panel { display: none; margin-top: 20px; background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid #333; text-align: left; }
         .inv-table { width: 100%; border-collapse: collapse; font-size: 12px; }
         .inv-table input { background: #000; color: #fff; border: 1px solid #444; padding: 5px; border-radius: 4px; width: 60px; }
-        .input-barcode { width: 110px !important; color: var(--gold) !important; }
 
+        /* Estilo Ticket */
         .ticket-section { width: 300px; background: #fff; color: #000; padding: 20px; border-radius: 10px; font-family: 'Courier New', monospace; height: fit-content; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
         .btn-ui { width: 100%; padding: 14px; margin: 6px 0; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
         
-        /* Indicador de Scanner Activo */
-        #scanner-indicator { font-size: 10px; color: var(--accent); position: fixed; bottom: 10px; left: 10px; opacity: 0.5; }
+        /* Switch de Impresión */
+        .switch-container { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; font-family: sans-serif; font-size: 14px; }
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        @media print {
+            body * { visibility: hidden; }
+            #area-impresion, #area-impresion * { visibility: visible; }
+            #area-impresion { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; }
+            .btn-ui, .switch-container, button { display: none !important; }
+        }
     </style>
 </head>
 <body>
 
     <header class="app-header">
-        <div class="app-title">CUEVA B - POS v2.0</div>
+        <div class="app-title">CUEVA B - POS</div>
         <div id="user-display" style="font-size: 14px; color: var(--gold);"></div>
     </header>
 
@@ -54,37 +66,42 @@
         <div class="main-layout">
             <div class="menu-section">
                 <div class="grid" id="grid-ventas"></div>
-
                 <div id="admin-panel">
-                    <h3>⚙️ Configuración y Reportes</h3>
+                    <h3>⚙️ Panel de Dueño</h3>
                     <details style="background: #111; padding: 15px; border-radius: 12px; border: 1px solid #333;">
-                        <summary style="cursor: pointer; font-weight: bold; color: var(--accent);">📦 Inventario y Códigos de Barras</summary>
-                        <div style="overflow-x: auto;">
-                            <table class="inv-table">
-                                <thead><tr><th>Producto</th><th>Costo</th><th>Venta</th><th>+Stock</th><th>Código Barras</th></tr></thead>
-                                <tbody id="lista-inventario"></tbody>
-                            </table>
-                        </div>
+                        <summary style="cursor: pointer; font-weight: bold; color: var(--accent);">📦 Inventario</summary>
+                        <table class="inv-table">
+                            <thead><tr><th>Producto</th><th>Costo</th><th>Venta</th><th>Stock</th><th>Barcode</th></tr></thead>
+                            <tbody id="lista-inventario"></tbody>
+                        </table>
                         <button class="btn-ui" style="background: var(--accent); color: #000; margin-top: 15px;" onclick="actualizarInventario()">💾 GUARDAR CAMBIOS</button>
                     </details>
-                    </div>
-                <button onclick="location.reload()" style="margin-top: 20px; background: none; border: 1px solid #555; color: #888; padding: 8px 15px; border-radius: 8px; cursor: pointer;">Cerrar Sesión</button>
+                </div>
             </div>
 
             <div class="ticket-section" id="area-impresion">
                 <h3 style="text-align:center; margin:0;">CUEVA B</h3>
-                <hr>
-                <div id="ticket-items" style="min-height: 150px; font-size: 13px;"></div>
-                <div style="border-top: 2px solid #000; padding-top:10px; text-align:right; font-weight:bold; font-size:1.2rem;">
+                <p style="text-align:center; font-size:10px; margin:2px 0;">Ticket de Venta</p>
+                <hr style="border: 1px dashed #000;">
+                <div id="ticket-items" style="min-height: 100px; font-size: 14px;"></div>
+                <div style="border-top: 2px solid #000; padding-top:10px; text-align:right; font-weight:bold; font-size:1.3rem;">
                     TOTAL: $<span id="ticket-total">0</span>
                 </div>
+                
                 <button class="btn-ui" style="background: var(--accent); color: #000; margin-top: 20px;" onclick="procesarVenta()">✅ COBRAR</button>
-                <button onclick="limpiarTicket()" style="background:none; border:none; color:red; cursor:pointer; width:100%; margin-top:10px; font-size:11px;">Vaciar Carrito</button>
+                
+                <div class="switch-container">
+                    <span>Imprimir Ticket</span>
+                    <label class="switch">
+                        <input type="checkbox" id="check-imprimir" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <button onclick="limpiarTicket()" style="background:none; border:none; color:red; cursor:pointer; width:100%; margin-top:15px; font-size:11px;">Cancelar Venta</button>
             </div>
         </div>
     </div>
-
-    <div id="scanner-indicator">⌨️ Lector de código de barras listo...</div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -105,9 +122,8 @@
 
         const PIN_SEC = "020322";
         let userRole = ""; let currentTicket = [];
-        let dbData = { stock: {}, costos: {}, precios: {}, barcodes: {}, ventas: {} };
+        let dbData = { stock: {}, costos: {}, precios: {}, barcodes: {} };
 
-        // Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCbkHawWcvju2U-ehpvHkToQV0--qh6Ip0",
             authDomain: "mibarpos.firebaseapp.com",
@@ -139,28 +155,66 @@
             CATALOGO.forEach(p => {
                 const stock = dbData.stock?.[p.id] || 0;
                 const precio = dbData.precios?.[p.id] || 0;
-                const barcode = dbData.barcodes?.[p.id] || "";
 
-                // Botón Ventas
                 const btn = document.createElement('button');
                 btn.className = 'btn-prod'; btn.style.background = p.color;
                 if(['#f0f0f0', '#ffcc00', '#00ff88'].includes(p.color)) btn.style.color = '#333';
                 btn.disabled = stock <= 0;
-                btn.innerHTML = `<b>${p.nombre}</b><br>$${precio}<span class="stock-badge">Stock: ${stock}</span><span class="barcode-label">${barcode}</span>`;
+                btn.innerHTML = `<b>${p.nombre}</b><br>$${precio}<span class="stock-badge">Stock: ${stock}</span>`;
                 btn.onclick = () => { currentTicket.push(p); renderTicket(); };
                 grid.appendChild(btn);
 
-                // Fila Inventario
                 if(userRole === 'dueno') {
                     invTable.innerHTML += `<tr><td>${p.nombre}</td>
                         <td><input type="number" id="c-${p.id}" value="${dbData.costos?.[p.id] || 0}"></td>
                         <td><input type="number" id="v-${p.id}" value="${precio}"></td>
                         <td><input type="number" id="s-${p.id}" placeholder="+0"></td>
-                        <td><input type="text" id="b-${p.id}" class="input-barcode" value="${barcode}"></td></tr>`;
+                        <td><input type="text" id="b-${p.id}" value="${dbData.barcodes?.[p.id] || ""}"></td></tr>`;
                 }
             });
         }
 
+        function renderTicket() {
+            const container = document.getElementById('ticket-items');
+            let tot = 0; let html = "";
+            currentTicket.forEach(p => {
+                const pr = dbData.precios?.[p.id] || 0;
+                tot += pr;
+                html += `<div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>${p.nombre}</span><span>$${pr}</span></div>`;
+            });
+            container.innerHTML = html || "<p style='color:#888; text-align:center;'>Seleccione productos</p>";
+            document.getElementById('ticket-total').innerText = tot;
+        }
+
+        function procesarVenta() {
+            if(currentTicket.length === 0) return;
+            
+            const quiereImprimir = document.getElementById('check-imprimir').checked;
+            let tV = 0; let tC = 0;
+            const hoy = new Date();
+
+            currentTicket.forEach(p => {
+                tV += (dbData.precios?.[p.id] || 0);
+                tC += (dbData.costos?.[p.id] || 0);
+                db.ref(`negocio/stock/${p.id}`).set((dbData.stock?.[p.id] || 0) - 1);
+            });
+
+            db.ref('negocio/ventas').push({
+                items: currentTicket.map(p => p.nombre).join(", "),
+                totalVenta: tV, gananciaVenta: (tV - tC),
+                fecha_ISO: hoy.toISOString().split('T')[0],
+                hora: hoy.toLocaleTimeString()
+            }).then(() => {
+                if(quiereImprimir) {
+                    window.print();
+                }
+                currentTicket = []; 
+                renderTicket();
+                alert("Venta procesada con éxito.");
+            });
+        }
+
+        function limpiarTicket() { currentTicket = []; renderTicket(); }
         function actualizarInventario() {
             let up = {};
             CATALOGO.forEach(p => {
@@ -173,76 +227,22 @@
             db.ref('negocio').update(up).then(() => alert("✅ Inventario Actualizado"));
         }
 
-        // LÓGICA DEL SCANNER DE CÓDIGO DE BARRAS
-        let barcodeBuffer = "";
+        // Scanner Listener
+        let buffer = "";
         window.addEventListener('keydown', (e) => {
-            // El lector suele terminar con la tecla "Enter"
             if (e.key === 'Enter') {
-                if (barcodeBuffer.length > 2) {
-                    buscarProductoPorBarcode(barcodeBuffer);
-                    barcodeBuffer = "";
+                if (buffer.length > 2) {
+                    const barcodes = dbData.barcodes || {};
+                    const foundId = Object.keys(barcodes).find(id => barcodes[id] === buffer);
+                    if(foundId) {
+                        const prod = CATALOGO.find(p => p.id === foundId);
+                        currentTicket.push(prod); renderTicket();
+                    }
+                    buffer = "";
                 }
-            } else {
-                // Solo capturamos caracteres alfanuméricos para evitar ruidos de otras teclas
-                if (e.key.length === 1) {
-                    barcodeBuffer += e.key;
-                }
-            }
-            // Limpiar buffer si pasa mucho tiempo (evita que se mezclen lecturas)
-            setTimeout(() => { if(barcodeBuffer !== "") barcodeBuffer = ""; }, 200);
+            } else if (e.key.length === 1) { buffer += e.key; }
+            setTimeout(() => buffer = "", 300);
         });
-
-        function buscarProductoPorBarcode(code) {
-            const barcodes = dbData.barcodes || {};
-            const foundId = Object.keys(barcodes).find(id => barcodes[id] === code);
-            
-            if(foundId) {
-                const prod = CATALOGO.find(p => p.id === foundId);
-                const stock = dbData.stock?.[foundId] || 0;
-                if(stock > 0) {
-                    currentTicket.push(prod);
-                    renderTicket();
-                } else {
-                    alert("⚠️ Producto agotado en inventario");
-                }
-            } else {
-                console.log("Código no registrado: " + code);
-            }
-        }
-
-        function renderTicket() {
-            const container = document.getElementById('ticket-items');
-            let tot = 0; let html = "";
-            currentTicket.forEach(p => {
-                const pr = dbData.precios?.[p.id] || 0;
-                tot += pr;
-                html += `<div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span>${p.nombre}</span><span>$${pr}</span></div>`;
-            });
-            container.innerHTML = html;
-            document.getElementById('ticket-total').innerText = tot;
-        }
-
-        function procesarVenta() {
-            if(currentTicket.length === 0) return;
-            let tV = 0; let tC = 0;
-            const hoy = new Date();
-            currentTicket.forEach(p => {
-                tV += (dbData.precios?.[p.id] || 0);
-                tC += (dbData.costos?.[p.id] || 0);
-                db.ref(`negocio/stock/${p.id}`).set((dbData.stock?.[p.id] || 0) - 1);
-            });
-            db.ref('negocio/ventas').push({
-                items: currentTicket.map(p => p.nombre).join(", "),
-                totalVenta: tV, gananciaVenta: (tV - tC),
-                fecha_ISO: hoy.toISOString().split('T')[0],
-                hora: hoy.toLocaleTimeString()
-            }).then(() => {
-                window.print();
-                currentTicket = []; renderTicket();
-            });
-        }
-
-        function limpiarTicket() { currentTicket = []; renderTicket(); }
     </script>
 </body>
 </html>
