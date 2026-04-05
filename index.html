@@ -3,43 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cueva B - Sistema de Control</title>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <title>Cueva B - POS Estable</title>
     <style>
-        :root { --bg: #0d0d0d; --card: #1a1a1a; --text: #e0e0e0; --accent: #00ff88; --gold: #ffcc00; --danger: #ff4444; }
+        :root { --bg: #0d0d0d; --card: #1a1a1a; --text: #e0e0e0; --accent: #00ff88; --gold: #ffcc00; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
         .app-header { background: #000; padding: 15px; border-bottom: 2px solid var(--accent); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         #login-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 90vh; }
         #main-app { display: none; padding: 20px; }
         .main-layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; max-width: 1600px; margin: auto; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
-        .btn-prod { padding: 12px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; height: 115px; transition: 0.1s; color: #fff; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .btn-prod:active { transform: scale(0.95); }
+        .btn-prod { padding: 12px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; height: 115px; transition: 0.1s; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .stock-badge { background: rgba(0,0,0,0.8); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-top: 8px; display: block; }
         .panel { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #333; margin-top: 20px; }
-        .stats-row { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
-        .stat-card { background: #000; padding: 15px; border-radius: 10px; border-left: 4px solid var(--accent); flex: 1; min-width: 150px; }
-        .stat-card h4 { margin: 0; font-size: 11px; color: #888; text-transform: uppercase; }
-        .stat-card p { margin: 5px 0 0; font-size: 24px; font-weight: bold; color: var(--accent); }
-        .filter-box { background: #222; padding: 12px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .input-date { background: #000; color: #fff; border: 1px solid #444; padding: 6px; border-radius: 5px; }
+        .stat-card { background: #000; padding: 20px; border-radius: 10px; border-left: 5px solid var(--accent); margin-bottom: 10px; }
+        .stat-card h4 { margin: 0; font-size: 12px; color: #888; text-transform: uppercase; }
+        .stat-card p { margin: 5px 0 0; font-size: 28px; font-weight: bold; color: var(--accent); }
+        .filter-box { background: #222; padding: 12px; border-radius: 10px; margin-bottom: 15px; display: flex; gap: 10px; align-items: center; }
+        .input-date { background: #000; color: #fff; border: 1px solid #444; padding: 8px; border-radius: 5px; }
         .ticket-section { background: #fff; color: #000; padding: 20px; border-radius: 10px; font-family: 'Courier New', monospace; height: fit-content; position: sticky; top: 80px; }
         .btn-ui { width: 100%; padding: 14px; margin: 6px 0; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-        .switch-container { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; background: #eee; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: bold; }
-        .switch { position: relative; width: 34px; height: 18px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #2196F3; }
-        input:checked + .slider:before { transform: translateX(16px); }
-        .inv-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-        .inv-table input { background: #000; color: #fff; border: 1px solid #444; padding: 4px; border-radius: 3px; width: 60px; }
-        @media print {
-            body * { visibility: hidden; }
-            #area-impresion, #area-impresion * { visibility: visible; }
-            #area-impresion { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; }
-            button, .switch-container, .no-print { display: none !important; }
-        }
+        .inv-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .inv-table input { background: #000; color: #fff; border: 1px solid #444; padding: 4px; width: 60px; border-radius: 4px; }
+        .switch-container { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; background: #eee; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: bold; color:#000; }
+        @media print { body * { visibility: hidden; } #area-impresion, #area-impresion * { visibility: visible; } #area-impresion { position: absolute; left: 0; top: 0; width: 100%; } button, .no-print { display: none !important; } }
     </style>
 </head>
 <body>
@@ -47,7 +33,7 @@
     <header class="app-header">
         <div style="color: var(--accent); font-weight: bold; font-size: 1.4rem;">CUEVA B</div>
         <div id="user-display" style="color: var(--gold); font-weight: bold;"></div>
-        <button onclick="location.reload()" style="background: #333; color: #fff; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer;">Salir</button>
+        <button onclick="location.reload()" style="background: #333; color: #fff; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer;">Cerrar Sesión</button>
     </header>
 
     <div id="login-screen">
@@ -61,41 +47,48 @@
         <div class="main-layout">
             <div class="menu-section">
                 <div class="grid" id="grid-ventas"></div>
+                
                 <div class="panel">
-                    <h3 style="margin-top:0; color: var(--gold);">📈 Reporte de Ventas</h3>
+                    <h3 style="margin-top:0; color: var(--gold);">📊 Reporte de Ventas</h3>
                     <div class="filter-box">
-                        <span>Desde:</span> <input type="date" id="f-inicio" class="input-date">
-                        <span>Hasta:</span> <input type="date" id="f-fin" class="input-date">
-                        <button onclick="filtrarVentas()" style="background: var(--accent); border:none; padding:7px 15px; border-radius:5px; font-weight:bold; cursor:pointer; color:#000;">Filtrar</button>
+                        <input type="date" id="f-inicio" class="input-date">
+                        <input type="date" id="f-fin" class="input-date">
+                        <button onclick="filtrarVentas()" style="background: var(--accent); border:none; padding:8px 15px; border-radius:5px; font-weight:bold; cursor:pointer; color:#000;">FILTRAR</button>
                     </div>
-                    <div class="stats-row">
-                        <div class="stat-card"><h4>VENTA TOTAL</h4><p id="stat-ingreso">$0</p></div>
-                        <div class="stat-card" id="card-utilidad" style="display:none; border-left-color: var(--gold);"><h4>UTILIDAD NETA</h4><p id="stat-utilidad">$0</p></div>
+                    <div class="stat-card">
+                        <h4>VENTA TOTAL</h4>
+                        <p id="stat-ingreso">$0</p>
+                    </div>
+                    <div class="stat-card" id="card-utilidad" style="display:none; border-left-color: var(--gold);">
+                        <h4>UTILIDAD NETA</h4>
+                        <p id="stat-utilidad">$0</p>
                     </div>
                 </div>
+
                 <div id="admin-panel" class="panel" style="display:none;">
-                    <h3 style="color: var(--accent);">📦 Inventario</h3>
-                    <div style="overflow-x:auto;">
-                        <table class="inv-table"><thead id="head-inv"></thead><tbody id="lista-inv"></tbody></table>
-                    </div>
-                    <button class="btn-ui" style="background: var(--accent); color: #000; margin-top: 15px;" onclick="actualizarInv()">💾 GUARDAR CAMBIOS</button>
+                    <h3 style="color: var(--accent);">📦 Inventario Maestro</h3>
+                    <table class="inv-table">
+                        <thead><tr><th>Prod</th><th>Costo</th><th>Venta</th><th>Stock</th><th>Code</th></tr></thead>
+                        <tbody id="lista-inv"></tbody>
+                    </table>
+                    <button class="btn-ui" style="background: var(--accent); color: #000; margin-top:15px;" onclick="actualizarInv()">💾 GUARDAR CAMBIOS</button>
                 </div>
             </div>
 
             <div class="ticket-section" id="area-impresion">
                 <h3 style="text-align:center; margin:0;">CUEVA B</h3>
                 <hr style="border: 1px dashed #000;">
-                <div id="ticket-items" style="min-height: 120px; font-size: 13px;"></div>
+                <div id="ticket-items" style="min-height: 100px; font-size: 13px;"></div>
                 <div style="border-top: 2px solid #000; padding-top:10px; text-align:right; font-weight:bold; font-size:1.4rem;">
                     TOTAL: $<span id="ticket-total">0</span>
                 </div>
                 <div class="no-print">
                     <button class="btn-ui" style="background: var(--accent); color: #000; margin-top: 20px;" onclick="procesarCobro()">✅ COBRAR</button>
                     <div class="switch-container">
-                        <span>IMPRIMIR TICKET?</span>
-                        <label class="switch"><input type="checkbox" id="check-print" checked><span class="slider"></span></label>
+                        <span>¿IMPRIMIR TICKET?</span>
+                        <input type="checkbox" id="check-print" checked>
                     </div>
-                    <button onclick="limpiar()" style="background:none; border:none; color:red; cursor:pointer; width:100%; margin-top:15px; font-size:11px;">CANCELAR</button>
+                    <button onclick="limpiar()" style="background:none; border:none; color:red; cursor:pointer; width:100%; margin-top:10px;">CANCELAR</button>
                 </div>
             </div>
         </div>
@@ -126,22 +119,29 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let dbData = {}; let carrito = []; let user = "";
+        let dbData = { stock: {}, costos: {}, precios: {}, barcodes: {}, ventas: {} }; 
+        let carrito = []; 
+        let userRole = "";
 
         function entrarComo(role) {
             if(role === 'dueno' && prompt("PIN:") !== "020322") return;
-            user = role;
+            userRole = role;
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
             document.getElementById('user-display').innerText = role === 'dueno' ? "👤 PROPIETARIO" : "👤 VENDEDOR";
+            
             if(role === 'dueno') {
                 document.getElementById('admin-panel').style.display = 'block';
                 document.getElementById('card-utilidad').style.display = 'block';
             }
+
             db.ref('negocio').on('value', snap => {
-                dbData = snap.val() || { stock: {}, costos: {}, precios: {}, barcodes: {}, ventas: {} };
-                renderApp();
-                filtrarVentas(); 
+                const data = snap.val();
+                if(data) {
+                    dbData = data;
+                    renderApp();
+                    filtrarVentas(); 
+                }
             });
         }
 
@@ -149,20 +149,20 @@
             const grid = document.getElementById('grid-ventas');
             const inv = document.getElementById('lista-inv');
             grid.innerHTML = ""; inv.innerHTML = "";
-            document.getElementById('head-inv').innerHTML = `<tr><th>Producto</th><th>Costo</th><th>Venta</th><th>+Stock</th><th>Barcode</th></tr>`;
+
             CATALOGO.forEach(p => {
-                const st = dbData.stock?.[p.id] || 0;
-                const pr = dbData.precios?.[p.id] || 0;
+                const st = Number(dbData.stock?.[p.id]) || 0;
+                const pr = Number(dbData.precios?.[p.id]) || 0;
                 const b = document.createElement('button');
                 b.className = 'btn-prod'; b.style.background = p.color;
                 if(['#f0f0f0', '#ffcc00', '#00ff88'].includes(p.color)) b.style.color = '#333';
-                b.disabled = st <= 0;
                 b.innerHTML = `${p.nombre}<br>$${pr}<span class="stock-badge">Stock: ${st}</span>`;
                 b.onclick = () => sumarAlTicket(p);
                 grid.appendChild(b);
-                if(user === 'dueno') {
+                
+                if(userRole === 'dueno') {
                     inv.innerHTML += `<tr><td>${p.nombre}</td>
-                        <td><input type="number" id="c-${p.id}" value="${dbData.costos?.[p.id] || 0}"></td>
+                        <td><input type="number" id="c-${p.id}" value="${Number(dbData.costos?.[p.id]) || 0}"></td>
                         <td><input type="number" id="v-${p.id}" value="${pr}"></td>
                         <td><input type="number" id="s-${p.id}" placeholder="+0"></td>
                         <td><input type="text" id="b-${p.id}" value="${dbData.barcodes?.[p.id] || ""}"></td></tr>`;
@@ -172,29 +172,34 @@
 
         function sumarAlTicket(p) {
             carrito.push(p);
-            let t = 0; let h = "";
-            carrito.forEach(i => {
-                const pr = dbData.precios?.[i.id] || 0;
-                t += pr;
-                h += `<div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>${i.nombre}</span><span>$${pr}</span></div>`;
+            let totalActual = 0; 
+            let htmlItems = "";
+            carrito.forEach(item => {
+                const precioItem = Number(dbData.precios?.[item.id]) || 0;
+                totalActual += precioItem;
+                htmlItems += `<div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>${item.nombre}</span><span>$${precioItem}</span></div>`;
             });
-            document.getElementById('ticket-items').innerHTML = h;
-            document.getElementById('ticket-total').innerText = t;
+            document.getElementById('ticket-items').innerHTML = htmlItems;
+            document.getElementById('ticket-total').innerText = totalActual;
         }
 
         function procesarCobro() {
             if(carrito.length === 0) return;
-            const hoy = new Date();
-            let totV = 0; let totC = 0;
+            const hoyISO = new Date().toISOString().split('T')[0];
+            let ventaT = 0; let costoT = 0;
+            
             carrito.forEach(p => {
-                totV += (dbData.precios?.[p.id] || 0);
-                totC += (dbData.costos?.[p.id] || 0);
-                db.ref(`negocio/stock/${p.id}`).set((dbData.stock?.[p.id] || 0) - 1);
+                const v = Number(dbData.precios?.[p.id]) || 0;
+                const c = Number(dbData.costos?.[p.id]) || 0;
+                ventaT += v;
+                costoT += c;
+                db.ref(`negocio/stock/${p.id}`).set((Number(dbData.stock?.[p.id]) || 0) - 1);
             });
+
             db.ref('negocio/ventas').push({
-                total: totV,
-                ganancia: (totV - totC),
-                fecha_ISO: hoy.toISOString().split('T')[0]
+                total: ventaT,
+                ganancia: (ventaT - costoT),
+                fecha_ISO: hoyISO
             }).then(() => {
                 if(document.getElementById('check-print').checked) window.print();
                 limpiar();
@@ -202,51 +207,56 @@
         }
 
         function filtrarVentas() {
-            const hoyStr = new Date().toISOString().split('T')[0];
-            const ini = document.getElementById('f-inicio').value || hoyStr;
-            const fin = document.getElementById('f-fin').value || hoyStr;
-            let ing = 0; let uti = 0;
+            const hoyISO = new Date().toISOString().split('T')[0];
+            const inicio = document.getElementById('f-inicio').value || hoyISO;
+            const fin = document.getElementById('f-fin').value || hoyISO;
+            
+            let sumaVenta = 0; 
+            let sumaGana = 0;
+
             if(dbData.ventas) {
                 Object.values(dbData.ventas).forEach(v => {
-                    if(v.fecha_ISO >= ini && v.fecha_ISO <= fin) {
-                        ing += v.total; uti += v.ganancia;
+                    if(v && v.fecha_ISO >= inicio && v.fecha_ISO <= fin) {
+                        sumaVenta += Number(v.total) || 0;
+                        sumaGana += Number(v.ganancia) || 0;
                     }
                 });
             }
-            document.getElementById('stat-ingreso').innerText = `$${ing}`;
-            if(user === 'dueno') document.getElementById('stat-utilidad').innerText = `$${uti}`;
+            document.getElementById('stat-ingreso').innerText = `$${sumaVenta}`;
+            if(userRole === 'dueno') document.getElementById('stat-utilidad').innerText = `$${sumaGana}`;
         }
 
         function actualizarInv() {
-            let u = {};
+            let updates = {};
             CATALOGO.forEach(p => {
-                u[`costos/${p.id}`] = Number(document.getElementById(`c-${p.id}`).value);
-                u[`precios/${p.id}`] = Number(document.getElementById(`v-${p.id}`).value);
-                u[`barcodes/${p.id}`] = document.getElementById(`b-${p.id}`).value.trim();
-                const add = Number(document.getElementById(`s-${p.id}`).value);
-                if(add) u[`stock/${p.id}`] = (dbData.stock?.[p.id] || 0) + add;
+                updates[`costos/${p.id}`] = Number(document.getElementById(`c-${p.id}`).value) || 0;
+                updates[`precios/${p.id}`] = Number(document.getElementById(`v-${p.id}`).value) || 0;
+                updates[`barcodes/${p.id}`] = document.getElementById(`b-${p.id}`).value.trim();
+                const stockAdd = Number(document.getElementById(`s-${p.id}`).value) || 0;
+                if(stockAdd !== 0) updates[`stock/${p.id}`] = (Number(dbData.stock?.[p.id]) || 0) + stockAdd;
             });
-            db.ref('negocio').update(u).then(() => alert("Inventario guardado"));
+            db.ref('negocio').update(updates).then(() => alert("✅ Cambios aplicados"));
         }
-
-        let buffer = "";
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                if (buffer.length > 2) {
-                    const barcodes = dbData.barcodes || {};
-                    const foundId = Object.keys(barcodes).find(id => barcodes[id] === buffer);
-                    if(foundId) sumarAlTicket(CATALOGO.find(p => p.id === foundId));
-                    buffer = "";
-                }
-            } else if (e.key.length === 1) { buffer += e.key; }
-            setTimeout(() => { buffer = ""; }, 400);
-        });
 
         function limpiar() {
             carrito = [];
             document.getElementById('ticket-items').innerHTML = "";
             document.getElementById('ticket-total').innerText = "0";
         }
+
+        // SCANNER LISTENER
+        let scannerBuffer = "";
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                if (scannerBuffer.length > 2) {
+                    const codes = dbData.barcodes || {};
+                    const foundId = Object.keys(codes).find(id => codes[id] === scannerBuffer);
+                    if(foundId) sumarAlTicket(CATALOGO.find(p => p.id === foundId));
+                    scannerBuffer = "";
+                }
+            } else if (e.key.length === 1) { scannerBuffer += e.key; }
+            setTimeout(() => { scannerBuffer = ""; }, 400);
+        });
     </script>
 </body>
 </html>
